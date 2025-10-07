@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { UserRole } from '../../constants';
 
 // SVG Icon Components
 const DashboardIcon = () => (
@@ -38,24 +40,32 @@ const LeaveTypeIcon = () => (
   </svg>
 );
 
+const UsersIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+  </svg>
+);
+
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const { user, hasAnyRole, logout } = useAuth();
+  
+  console.log('Sidebar user:', user);
 
-  const menuItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
-    { path: '/leave-requests', label: 'İzin Talepleri', icon: <LeaveRequestIcon /> },
-    { path: '/approvals', label: 'Onaylar', icon: <ApprovalIcon /> },
-    { path: '/employees', label: 'Çalışanlar', icon: <EmployeesIcon /> },
-    { path: '/departments', label: 'Departmanlar', icon: <DepartmentIcon /> },
-    { path: '/leave-types', label: 'İzin Türleri', icon: <LeaveTypeIcon /> },
+  const allMenuItems = [
+    { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon />, roles: null },
+    { path: '/leave-requests', label: 'İzin Talepleri', icon: <LeaveRequestIcon />, roles: null },
+    { path: '/approvals', label: 'Onaylar', icon: <ApprovalIcon />, roles: [UserRole.Admin, UserRole.HrManager, UserRole.DepartmentManager] },
+    { path: '/employees', label: 'Çalışanlar', icon: <EmployeesIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
+    { path: '/departments', label: 'Departmanlar', icon: <DepartmentIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
+    { path: '/leave-types', label: 'İzin Türleri', icon: <LeaveTypeIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
+    { path: '/users', label: 'Kullanıcılar', icon: <UsersIcon />, roles: [UserRole.Admin] },
   ];
 
-  const user = {
-    name: 'Ahmet Yılmaz',
-    role: 'İK Müdürü',
-    department: 'İnsan Kaynakları',
-    avatar: 'AY'
-  };
+  // Filter menu items based on user role
+  const menuItems = allMenuItems.filter(item => 
+    !item.roles || hasAnyRole(item.roles)
+  );
 
   return (
     <>
@@ -132,13 +142,24 @@ const Sidebar = ({ isOpen, onClose }) => {
             <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl p-4 border border-gray-600">
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">{user.avatar}</span>
+                  <span className="text-white font-bold text-sm">
+                    {user?.username?.charAt(0).toUpperCase() || 'U'}
+                  </span>
                 </div>
                 <div className="ml-3 flex-1">
-                  <p className="text-white font-semibold text-sm">{user.name}</p>
-                  <p className="text-gray-400 text-xs">{user.role}</p>
-                  <p className="text-gray-500 text-xs">{user.department}</p>
+                  <p className="text-white font-semibold text-sm">{user?.username || 'Kullanıcı'}</p>
+                  <p className="text-gray-400 text-xs">{user?.roleName || 'Rol'}</p>
+                  <p className="text-gray-500 text-xs">{user?.departmentName || 'Departman'}</p>
                 </div>
+                <button
+                  onClick={logout}
+                  className="ml-2 p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                  title="Çıkış Yap"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>

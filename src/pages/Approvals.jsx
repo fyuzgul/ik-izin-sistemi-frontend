@@ -16,16 +16,27 @@ const Approvals = () => {
   useEffect(() => {
     const fetchPendingRequests = async () => {
       try {
-        // For demo purposes, getting all requests and filtering pending ones
-        // In real app, you'd call specific API endpoints based on user role
-        const allRequests = await leaveRequestApi.getAll();
-        const pending = allRequests.filter(
-          req => req.status === LeaveRequestStatus.Pending ||
-                 req.status === LeaveRequestStatus.ApprovedByDepartmentManager
-        );
-        setPendingRequests(pending);
+        // Get pending requests for department managers and HR managers
+        const [deptManagerRequests, hrManagerRequests] = await Promise.all([
+          leaveRequestApi.getPendingForDepartmentManager(1), // Replace with actual manager ID
+          leaveRequestApi.getPendingForHrManager()
+        ]);
+        
+        const allPending = [...deptManagerRequests, ...hrManagerRequests];
+        setPendingRequests(allPending);
       } catch (error) {
         console.error('Bekleyen talepler yüklenirken hata:', error);
+        // Fallback to getting all requests and filtering
+        try {
+          const allRequests = await leaveRequestApi.getAll();
+          const pending = allRequests.filter(
+            req => req.status === LeaveRequestStatus.Pending ||
+                   req.status === LeaveRequestStatus.ApprovedByDepartmentManager
+          );
+          setPendingRequests(pending);
+        } catch (fallbackError) {
+          console.error('Fallback veri yükleme hatası:', fallbackError);
+        }
       } finally {
         setLoading(false);
       }
@@ -43,12 +54,23 @@ const Approvals = () => {
       setApprovalData({ status: '', comments: '' });
       
       // Refresh data
-      const allRequests = await leaveRequestApi.getAll();
-      const pending = allRequests.filter(
-        req => req.status === LeaveRequestStatus.Pending ||
-               req.status === LeaveRequestStatus.ApprovedByDepartmentManager
-      );
-      setPendingRequests(pending);
+      try {
+        const [deptManagerRequests, hrManagerRequests] = await Promise.all([
+          leaveRequestApi.getPendingForDepartmentManager(1), // Replace with actual manager ID
+          leaveRequestApi.getPendingForHrManager()
+        ]);
+        
+        const allPending = [...deptManagerRequests, ...hrManagerRequests];
+        setPendingRequests(allPending);
+      } catch (error) {
+        // Fallback to getting all requests and filtering
+        const allRequests = await leaveRequestApi.getAll();
+        const pending = allRequests.filter(
+          req => req.status === LeaveRequestStatus.Pending ||
+                 req.status === LeaveRequestStatus.ApprovedByDepartmentManager
+        );
+        setPendingRequests(pending);
+      }
     } catch (error) {
       console.error('Onay işlemi sırasında hata:', error);
       alert('Onay işlemi sırasında hata oluştu!');

@@ -26,6 +26,37 @@ export const LeaveRequestStatusColors = {
   [LeaveRequestStatus.Cancelled]: 'gray'
 };
 
+// User Roles
+export const UserRole = {
+  Admin: 'SystemAdmin',
+  HrManager: 'HrManager',
+  DepartmentManager: 'DepartmentManager',
+  Employee: 'Employee'
+};
+
+export const UserRoleLabels = {
+  [UserRole.Admin]: 'Yönetici',
+  [UserRole.HrManager]: 'İK Müdürü',
+  [UserRole.DepartmentManager]: 'Departman Yöneticisi',
+  [UserRole.Employee]: 'Çalışan'
+};
+
+// Employee Status
+export const EmployeeStatus = {
+  Active: true,
+  Inactive: false
+};
+
+export const EmployeeStatusLabels = {
+  [EmployeeStatus.Active]: 'Aktif',
+  [EmployeeStatus.Inactive]: 'Pasif'
+};
+
+export const EmployeeStatusColors = {
+  [EmployeeStatus.Active]: 'green',
+  [EmployeeStatus.Inactive]: 'red'
+};
+
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: 'https://localhost:7000/api',

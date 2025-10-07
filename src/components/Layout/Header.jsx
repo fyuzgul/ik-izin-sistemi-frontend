@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Header = () => {
+  const { user, logout } = useAuth();
   return (
     <header className="bg-white shadow-lg border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,9 +51,12 @@ const Header = () => {
 
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-700">
-              Hoş geldiniz, <span className="font-medium">Admin</span>
+              Hoş geldiniz, <span className="font-medium">{user?.username || 'Kullanıcı'}</span>
             </div>
-            <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+            <button 
+              onClick={logout}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            >
               Çıkış
             </button>
           </div>

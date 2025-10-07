@@ -1,32 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout/Layout';
-import { employeeApi, departmentApi } from '../services/api';
+import { authApi, departmentApi, employeeApi } from '../services/api';
+import { UserRole, UserRoleLabels } from '../constants';
 
-const Employees = () => {
-  const [employees, setEmployees] = useState([]);
+const Users = () => {
+  const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newEmployee, setNewEmployee] = useState({
-    firstName: '',
-    lastName: '',
+  const [newUser, setNewUser] = useState({
+    username: '',
     email: '',
-    employeeNumber: '',
-    phoneNumber: '',
-    hireDate: '',
-    departmentId: '',
-    managerId: ''
+    password: '',
+    roleId: '',
+    employeeId: ''
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [emps, deps] = await Promise.all([
+        const [usersData, deps, emps, rolesData] = await Promise.all([
+          authApi.getAllUsers(),
+          departmentApi.getAll(),
           employeeApi.getAll(),
-          departmentApi.getAll()
+          authApi.getAllRoles()
         ]);
-        setEmployees(emps);
+
+        setUsers(usersData);
         setDepartments(deps);
+        setEmployees(emps);
+        setRoles(rolesData);
       } catch (error) {
         console.error('Veriler yüklenirken hata:', error);
       } finally {
@@ -37,28 +42,49 @@ const Employees = () => {
     fetchData();
   }, []);
 
-  const handleCreateEmployee = async (e) => {
+  const handleCreateUser = async (e) => {
     e.preventDefault();
     try {
-      await employeeApi.create(newEmployee);
+      await authApi.createUser(newUser);
       setShowCreateModal(false);
-      setNewEmployee({
-        firstName: '',
-        lastName: '',
+      setNewUser({
+        username: '',
         email: '',
-        employeeNumber: '',
-        phoneNumber: '',
-        hireDate: '',
-        departmentId: '',
-        managerId: ''
+        password: '',
+        roleId: '',
+        employeeId: ''
       });
       // Refresh data
-      const emps = await employeeApi.getAll();
-      setEmployees(emps);
+      const usersData = await authApi.getAllUsers();
+      setUsers(usersData);
     } catch (error) {
-      console.error('Çalışan oluşturulurken hata:', error);
-      alert('Çalışan oluşturulurken hata oluştu!');
+      console.error('Kullanıcı oluşturulurken hata:', error);
+      alert('Kullanıcı oluşturulurken hata oluştu!');
     }
+  };
+
+  const handleDeactivateUser = async (id) => {
+    if (window.confirm('Bu kullanıcıyı deaktive etmek istediğinizden emin misiniz?')) {
+      try {
+        await authApi.deactivateUser(id);
+        // Refresh data
+        const usersData = await authApi.getAllUsers();
+        setUsers(usersData);
+      } catch (error) {
+        console.error('Kullanıcı deaktive edilirken hata:', error);
+        alert('Kullanıcı deaktive edilirken hata oluştu!');
+      }
+    }
+  };
+
+  const getRoleLabel = (roleId) => {
+    const role = roles.find(r => r.id === roleId);
+    return role ? role.name : 'Bilinmiyor';
+  };
+
+  const getEmployeeName = (employeeId) => {
+    const employee = employees.find(e => e.id === employeeId);
+    return employee ? employee.fullName : 'Bilinmiyor';
   };
 
   if (loading) {
@@ -76,14 +102,14 @@ const Employees = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Çalışanlar</h1>
-            <p className="mt-2 text-gray-600">Tüm çalışanları görüntüleyin ve yönetin</p>
+            <h1 className="text-3xl font-bold text-gray-900">Kullanıcılar</h1>
+            <p className="mt-2 text-gray-600">Sistem kullanıcılarını yönetin</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
           >
-            Yeni Çalışan
+            Yeni Kullanıcı
           </button>
         </div>
 
@@ -93,22 +119,16 @@ const Employees = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ad Soyad
+                    Kullanıcı Adı
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Email
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Çalışan No
+                    Rol
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Telefon
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    İşe Giriş
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Departman
+                    Çalışan
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Durum
@@ -119,54 +139,49 @@ const Employees = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {employees.map((employee) => (
-                  <tr key={employee.id} className="hover:bg-gray-50">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {employee.fullName}
+                        {user.username}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {employee.email}
+                        {user.email}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {employee.employeeNumber}
+                        {getRoleLabel(user.roleId)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {employee.phoneNumber || '-'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {employee.hireDate ? new Date(employee.hireDate).toLocaleDateString('tr-TR') : '-'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {employee.departmentName || '-'}
+                        {getEmployeeName(user.employeeId)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        employee.isActive 
+                        user.isActive 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {employee.isActive ? 'Aktif' : 'Pasif'}
+                        {user.isActive ? 'Aktif' : 'Pasif'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button className="text-blue-600 hover:text-blue-900 mr-3">
                         Düzenle
                       </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        Sil
-                      </button>
+                      {user.isActive && (
+                        <button 
+                          onClick={() => handleDeactivateUser(user.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Deaktive Et
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -175,30 +190,19 @@ const Employees = () => {
           </div>
         </div>
 
-        {/* Create Employee Modal */}
+        {/* Create User Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
             <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
               <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Yeni Çalışan</h3>
-                <form onSubmit={handleCreateEmployee} className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Yeni Kullanıcı</h3>
+                <form onSubmit={handleCreateUser} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Ad</label>
+                    <label className="block text-sm font-medium text-gray-700">Kullanıcı Adı</label>
                     <input
                       type="text"
-                      value={newEmployee.firstName}
-                      onChange={(e) => setNewEmployee({...newEmployee, firstName: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Soyad</label>
-                    <input
-                      type="text"
-                      value={newEmployee.lastName}
-                      onChange={(e) => setNewEmployee({...newEmployee, lastName: e.target.value})}
+                      value={newUser.username}
+                      onChange={(e) => setNewUser({...newUser, username: e.target.value})}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
@@ -208,55 +212,49 @@ const Employees = () => {
                     <label className="block text-sm font-medium text-gray-700">Email</label>
                     <input
                       type="email"
-                      value={newEmployee.email}
-                      onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+                      value={newUser.email}
+                      onChange={(e) => setNewUser({...newUser, email: e.target.value})}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Çalışan No</label>
+                    <label className="block text-sm font-medium text-gray-700">Şifre</label>
                     <input
-                      type="text"
-                      value={newEmployee.employeeNumber}
-                      onChange={(e) => setNewEmployee({...newEmployee, employeeNumber: e.target.value})}
+                      type="password"
+                      value={newUser.password}
+                      onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Telefon</label>
-                    <input
-                      type="tel"
-                      value={newEmployee.phoneNumber}
-                      onChange={(e) => setNewEmployee({...newEmployee, phoneNumber: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">İşe Giriş Tarihi</label>
-                    <input
-                      type="date"
-                      value={newEmployee.hireDate}
-                      onChange={(e) => setNewEmployee({...newEmployee, hireDate: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Departman</label>
+                    <label className="block text-sm font-medium text-gray-700">Rol</label>
                     <select
-                      value={newEmployee.departmentId}
-                      onChange={(e) => setNewEmployee({...newEmployee, departmentId: e.target.value})}
+                      value={newUser.roleId}
+                      onChange={(e) => setNewUser({...newUser, roleId: e.target.value})}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value="">Rol Seçin</option>
+                      {roles.map(role => (
+                        <option key={role.id} value={role.id}>{role.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Çalışan</label>
+                    <select
+                      value={newUser.employeeId}
+                      onChange={(e) => setNewUser({...newUser, employeeId: e.target.value})}
                       className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     >
-                      <option value="">Departman Seçin</option>
-                      {departments.map(dept => (
-                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                      <option value="">Çalışan Seçin</option>
+                      {employees.map(emp => (
+                        <option key={emp.id} value={emp.id}>{emp.fullName}</option>
                       ))}
                     </select>
                   </div>
@@ -286,4 +284,4 @@ const Employees = () => {
   );
 };
 
-export default Employees;
+export default Users;

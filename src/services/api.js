@@ -9,6 +9,50 @@ const api = axios.create({
   },
 });
 
+// Request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor to handle auth errors
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid, logout user
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Auth API
+export const authApi = {
+  login: (data) => api.post('/auth/login', data).then(res => res.data),
+  createUser: (data) => api.post('/auth/users', data).then(res => res.data),
+  getAllUsers: () => api.get('/auth/users').then(res => res.data),
+  getUserById: (id) => api.get(`/auth/users/${id}`).then(res => res.data),
+  updateUser: (id, data) => api.put(`/auth/users/${id}`, data),
+  deactivateUser: (id) => api.delete(`/auth/users/${id}`),
+  changePassword: (id, data) => api.put(`/auth/users/${id}/change-password`, data),
+  resetPassword: (id, data) => api.put(`/auth/users/${id}/reset-password`, data),
+  getAllRoles: () => api.get('/auth/roles').then(res => res.data),
+  getRoleById: (id) => api.get(`/auth/roles/${id}`).then(res => res.data),
+};
+
 // Leave Requests API
 export const leaveRequestApi = {
   getAll: () => api.get('/leaverequests').then(res => res.data),
