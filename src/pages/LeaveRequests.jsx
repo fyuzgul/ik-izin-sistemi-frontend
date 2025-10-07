@@ -95,12 +95,11 @@ const LeaveRequests = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">İzin Talepleri</h1>
-            <p className="mt-2 text-gray-600">Tüm izin taleplerini görüntüleyin ve yönetin</p>
+            <h1 className="text-sm font-medium text-gray-500 uppercase tracking-wide">İzin Talepleri</h1>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             Yeni İzin Talebi
           </button>
@@ -261,7 +260,7 @@ const LeaveRequests = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
                       Oluştur
                     </button>

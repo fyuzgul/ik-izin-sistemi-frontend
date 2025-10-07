@@ -101,8 +101,7 @@ const Approvals = () => {
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Onaylar</h1>
-          <p className="mt-2 text-gray-600">Bekleyen izin taleplerini onaylayın veya reddedin</p>
+          <h1 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Onaylar</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
