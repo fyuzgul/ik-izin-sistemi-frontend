@@ -1,46 +1,87 @@
-# Getting Started with Create React App
+# İzin Sistemi Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Bu proje React ve Tailwind CSS kullanarak geliştirilmiş bir izin talep sistemi frontend'idir.
 
-## Available Scripts
+## Teknolojiler
 
-In the project directory, you can run:
+- React 18
+- Tailwind CSS
+- Axios (HTTP istekleri için)
+- React Router (Sayfa yönlendirme için)
 
-### `npm start`
+## Kurulum
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+1. Projeyi klonlayın
+2. `npm install` komutu ile paketleri yükleyin
+3. `npm start` komutu ile development server'ı başlatın
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Özellikler
 
-### `npm test`
+### Dashboard
+- Sistem genel durumu
+- İstatistikler (toplam çalışan, bekleyen talepler, vb.)
+- Hızlı işlemler
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### İzin Talepleri
+- Tüm izin taleplerini görüntüleme
+- Yeni izin talebi oluşturma
+- İzin talebi detaylarını görüntüleme
+- İzin talebini iptal etme
 
-### `npm run build`
+### Onaylar
+- Departman yöneticisi onayları
+- İK müdürü onayları
+- Onaylama/reddetme işlemleri
+- Yorum ekleme
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Çalışan Yönetimi
+- Çalışan listesi
+- Yeni çalışan ekleme
+- Çalışan bilgilerini güncelleme
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### İzin Türleri
+- İzin türü listesi
+- Yeni izin türü ekleme
+- İzin türü ayarları
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## API Entegrasyonu
 
-### `npm run eject`
+Frontend, backend API'si ile şu şekilde entegre edilmiştir:
+- Base URL: `https://localhost:7000/api`
+- Tüm HTTP istekleri Axios ile yapılır
+- CORS desteği aktif
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Kullanım
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. Backend API'sinin çalıştığından emin olun
+2. Frontend'i başlatın: `npm start`
+3. Tarayıcıda `http://localhost:3000` adresini açın
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Responsive Tasarım
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Uygulama tüm cihaz boyutlarında çalışacak şekilde tasarlanmıştır:
+- Mobil cihazlar
+- Tabletler
+- Masaüstü bilgisayarlar
 
-## Learn More
+## Bileşen Yapısı
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+src/
+├── components/
+│   ├── Layout/
+│   │   ├── Header.jsx
+│   │   ├── Sidebar.jsx
+│   │   └── Layout.jsx
+│   └── Dashboard/
+│       └── StatsCard.jsx
+├── pages/
+│   ├── Dashboard.jsx
+│   ├── LeaveRequests.jsx
+│   └── Approvals.jsx
+├── services/
+│   └── api.js
+├── constants/
+│   └── index.js
+└── App.js
+```
