@@ -76,11 +76,11 @@ const Sidebar = ({ isOpen, onClose }) => {
         />
       )}
       
-      <aside className={`fixed lg:static top-0 left-0 z-50 lg:h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-black shadow-2xl lg:w-72 ${
+      <aside className={`fixed lg:sticky lg:top-0 top-0 left-0 z-50 lg:h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-black shadow-2xl lg:w-72 ${
         isOpen ? 'w-full h-screen' : 'w-full lg:w-72'
       } transition-transform duration-500 ease-in-out lg:translate-x-0 ${
         isOpen ? 'translate-y-0' : 'translate-y-[-100%] lg:translate-y-0'
-      } overflow-hidden lg:overflow-visible`}>
+      } overflow-hidden`}>
         <div className="p-8 h-full flex flex-col">
           {/* Header with Toggle Button */}
           <div className="mb-8">

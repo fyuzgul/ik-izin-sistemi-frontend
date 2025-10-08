@@ -5,7 +5,7 @@ const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="h-screen bg-gray-100 overflow-hidden">
       {/* Mobile Menu Button */}
       <button
         onClick={() => setSidebarOpen(true)}
@@ -16,9 +16,9 @@ const Layout = ({ children }) => {
         </svg>
       </button>
 
-      <div className="flex min-h-screen">
+      <div className="flex h-screen">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <main className="flex-1 lg:ml-0 ml-0 p-6 transition-all duration-300 overflow-x-hidden max-w-full">
+        <main className="flex-1 lg:ml-0 ml-0 p-6 transition-all duration-300 overflow-x-hidden overflow-y-auto max-w-full">
           {children}
         </main>
       </div>

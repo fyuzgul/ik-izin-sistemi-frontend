@@ -175,7 +175,7 @@ const Employees = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {employees.map((employee) => (
-            <div key={employee.id} className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl shadow-xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300">
+            <div key={employee.id} className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl shadow-xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300 flex flex-col">
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
@@ -201,7 +201,7 @@ const Employees = () => {
               </div>
 
               {/* Info */}
-              <div className="space-y-3 mb-4">
+              <div className="space-y-3 mb-4 flex-1">
                 {employee.email && (
                   <div className="flex items-center text-sm bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                     <svg className="w-4 h-4 text-blue-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
