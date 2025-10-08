@@ -1,22 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout/Layout';
 import { authApi, departmentApi, employeeApi } from '../services/api';
 import { UserRole, UserRoleLabels } from '../constants';
 
 const Users = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newUser, setNewUser] = useState({
-    username: '',
-    email: '',
-    password: '',
-    roleId: '',
-    employeeId: ''
-  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,26 +36,6 @@ const Users = () => {
     fetchData();
   }, []);
 
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    try {
-      await authApi.createUser(newUser);
-      setShowCreateModal(false);
-      setNewUser({
-        username: '',
-        email: '',
-        password: '',
-        roleId: '',
-        employeeId: ''
-      });
-      // Refresh data
-      const usersData = await authApi.getAllUsers();
-      setUsers(usersData);
-    } catch (error) {
-      console.error('Kullanıcı oluşturulurken hata:', error);
-      alert('Kullanıcı oluşturulurken hata oluştu!');
-    }
-  };
 
   const handleDeactivateUser = async (id) => {
     if (window.confirm('Bu kullanıcıyı deaktive etmek istediğinizden emin misiniz?')) {
@@ -104,12 +78,12 @@ const Users = () => {
           <div>
             <h1 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Kullanıcılar</h1>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Yeni Kullanıcı
-          </button>
+                  <button
+                    onClick={() => navigate('/users/create')}
+                    className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Yeni Kullanıcı
+                  </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -189,95 +163,6 @@ const Users = () => {
           </div>
         </div>
 
-        {/* Create User Modal */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Yeni Kullanıcı</h3>
-                <form onSubmit={handleCreateUser} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Kullanıcı Adı</label>
-                    <input
-                      type="text"
-                      value={newUser.username}
-                      onChange={(e) => setNewUser({...newUser, username: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <input
-                      type="email"
-                      value={newUser.email}
-                      onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Şifre</label>
-                    <input
-                      type="password"
-                      value={newUser.password}
-                      onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Rol</label>
-                    <select
-                      value={newUser.roleId}
-                      onChange={(e) => setNewUser({...newUser, roleId: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    >
-                      <option value="">Rol Seçin</option>
-                      {roles.map(role => (
-                        <option key={role.id} value={role.id}>{role.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Çalışan</label>
-                    <select
-                      value={newUser.employeeId}
-                      onChange={(e) => setNewUser({...newUser, employeeId: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Çalışan Seçin</option>
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>{emp.fullName}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowCreateModal(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-                    >
-                      İptal
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
-                      Oluştur
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );

@@ -1,64 +1,49 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout/Layout';
-import { leaveRequestApi, leaveTypeApi, employeeApi } from '../services/api';
+import { leaveRequestApi } from '../services/api';
 import { LeaveRequestStatus, LeaveRequestStatusLabels, LeaveRequestStatusColors } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 
 const LeaveRequests = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [leaveRequests, setLeaveRequests] = useState([]);
-  const [leaveTypes, setLeaveTypes] = useState([]);
-  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newRequest, setNewRequest] = useState({
-    employeeId: '',
-    leaveTypeId: '',
-    startDate: '',
-    endDate: '',
-    reason: ''
-  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [requests, types, emps] = await Promise.all([
-          leaveRequestApi.getAll(),
-          leaveTypeApi.getAll(),
-          employeeApi.getAll()
-        ]);
+        let requests;
+        
+        if (user?.roleName === 'Admin' || user?.roleName === 'İK Müdürü') {
+          // Admin and HR see all requests
+          requests = await leaveRequestApi.getAll();
+        } else if (user?.roleName === 'Yönetici') {
+          // Managers see only their subordinates' requests + their own
+          const allRequests = await leaveRequestApi.getAll();
+          requests = allRequests.filter(req => 
+            req.departmentManagerId === user.employeeId || req.employeeId === user.employeeId
+          );
+        } else {
+          // Regular employees see only their own requests
+          requests = await leaveRequestApi.getMyRequests();
+        }
 
         setLeaveRequests(requests);
-        setLeaveTypes(types);
-        setEmployees(emps);
       } catch (error) {
         console.error('Veriler yüklenirken hata:', error);
+        alert('İzin talepleri yüklenirken hata oluştu.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
-
-  const handleCreateRequest = async (e) => {
-    e.preventDefault();
-    try {
-      await leaveRequestApi.create(newRequest);
-      setShowCreateModal(false);
-      setNewRequest({
-        employeeId: '',
-        leaveTypeId: '',
-        startDate: '',
-        endDate: '',
-        reason: ''
-      });
-      // Refresh data
-      const requests = await leaveRequestApi.getAll();
-      setLeaveRequests(requests);
-    } catch (error) {
-      console.error('İzin talebi oluşturulurken hata:', error);
-      alert('İzin talebi oluşturulurken hata oluştu!');
+    if (user) {
+      fetchData();
     }
-  };
+  }, [user]);
+
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('tr-TR');
@@ -90,15 +75,51 @@ const LeaveRequests = () => {
     );
   }
 
+  const handleCancel = async (requestId) => {
+    if (!window.confirm('İzin talebini iptal etmek istediğinizden emin misiniz?')) {
+      return;
+    }
+
+    try {
+      await leaveRequestApi.cancel(requestId);
+      alert('İzin talebi başarıyla iptal edildi!');
+      
+      // Refresh data
+      let requests;
+      if (user?.roleName === 'Admin' || user?.roleName === 'İK Müdürü') {
+        requests = await leaveRequestApi.getAll();
+      } else if (user?.roleName === 'Yönetici') {
+        const allRequests = await leaveRequestApi.getAll();
+        requests = allRequests.filter(req => 
+          req.departmentManagerId === user.employeeId || req.employeeId === user.employeeId
+        );
+      } else {
+        requests = await leaveRequestApi.getMyRequests();
+      }
+      setLeaveRequests(requests);
+    } catch (error) {
+      console.error('İzin talebi iptal edilirken hata:', error);
+      const errorMessage = error.response?.data?.message || error.response?.data || 'İzin talebi iptal edilirken hata oluştu!';
+      alert(errorMessage);
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-sm font-medium text-gray-500 uppercase tracking-wide">İzin Talepleri</h1>
+            <p className="text-xs text-gray-500 mt-1">
+              {user?.roleName === 'Admin' || user?.roleName === 'İK Müdürü' 
+                ? 'Tüm izin talepleri gösteriliyor' 
+                : user?.roleName === 'Yönetici'
+                ? 'Sadece ekibinizdeki çalışanların talepleri gösteriliyor'
+                : 'Sadece kendi izin talepleriniz gösteriliyor'}
+            </p>
           </div>
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => navigate('/leave-requests/create')}
             className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             Yeni İzin Talebi
@@ -165,12 +186,22 @@ const LeaveRequests = () => {
                       {getStatusBadge(request.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-blue-600 hover:text-blue-900 mr-3">
-                        Görüntüle
-                      </button>
-                      {request.status === LeaveRequestStatus.Pending && (
-                        <button className="text-red-600 hover:text-red-900">
-                          İptal
+                      {(request.status === LeaveRequestStatus.Pending || 
+                        request.status === LeaveRequestStatus.ApprovedByDepartmentManager) && 
+                       request.employeeId === user?.employeeId && (
+                        <button 
+                          onClick={() => handleCancel(request.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          İptal Et
+                        </button>
+                      )}
+                      {request.reason && (
+                        <button 
+                          onClick={() => alert(`Sebep: ${request.reason}`)}
+                          className="text-blue-600 hover:text-blue-900 ml-3"
+                        >
+                          Detay
                         </button>
                       )}
                     </td>
@@ -182,94 +213,6 @@ const LeaveRequests = () => {
         </div>
 
         {/* Create Request Modal */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Yeni İzin Talebi</h3>
-                <form onSubmit={handleCreateRequest} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Çalışan</label>
-                    <select
-                      value={newRequest.employeeId}
-                      onChange={(e) => setNewRequest({...newRequest, employeeId: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    >
-                      <option value="">Çalışan Seçin</option>
-                      {employees.map(emp => (
-                        <option key={emp.id} value={emp.id}>{emp.fullName}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">İzin Türü</label>
-                    <select
-                      value={newRequest.leaveTypeId}
-                      onChange={(e) => setNewRequest({...newRequest, leaveTypeId: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    >
-                      <option value="">İzin Türü Seçin</option>
-                      {leaveTypes.map(type => (
-                        <option key={type.id} value={type.id}>{type.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Başlangıç Tarihi</label>
-                    <input
-                      type="date"
-                      value={newRequest.startDate}
-                      onChange={(e) => setNewRequest({...newRequest, startDate: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Bitiş Tarihi</label>
-                    <input
-                      type="date"
-                      value={newRequest.endDate}
-                      onChange={(e) => setNewRequest({...newRequest, endDate: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Sebep</label>
-                    <textarea
-                      value={newRequest.reason}
-                      onChange={(e) => setNewRequest({...newRequest, reason: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      rows="3"
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowCreateModal(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-                    >
-                      İptal
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
-                      Oluştur
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );

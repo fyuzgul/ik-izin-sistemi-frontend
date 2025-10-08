@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout/Layout';
 import { leaveRequestApi } from '../services/api';
 import { LeaveRequestStatus, LeaveRequestStatusLabels } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 
 const Approvals = () => {
+  const { user } = useAuth();
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -16,64 +18,64 @@ const Approvals = () => {
   useEffect(() => {
     const fetchPendingRequests = async () => {
       try {
-        // Get pending requests for department managers and HR managers
-        const [deptManagerRequests, hrManagerRequests] = await Promise.all([
-          leaveRequestApi.getPendingForDepartmentManager(1), // Replace with actual manager ID
-          leaveRequestApi.getPendingForHrManager()
-        ]);
+        const requests = [];
         
-        const allPending = [...deptManagerRequests, ...hrManagerRequests];
-        setPendingRequests(allPending);
+        // Get pending requests based on user role
+        if (user?.roleName === 'Yönetici' || user?.roleName === 'Admin') {
+          const deptManagerRequests = await leaveRequestApi.getPendingForDepartmentManager();
+          requests.push(...deptManagerRequests);
+        }
+        
+        if (user?.roleName === 'İK Müdürü' || user?.roleName === 'Admin') {
+          const hrManagerRequests = await leaveRequestApi.getPendingForHrManager();
+          requests.push(...hrManagerRequests);
+        }
+        
+        // Remove duplicates based on request id
+        const uniqueRequests = Array.from(new Map(requests.map(req => [req.id, req])).values());
+        setPendingRequests(uniqueRequests);
       } catch (error) {
         console.error('Bekleyen talepler yüklenirken hata:', error);
-        // Fallback to getting all requests and filtering
-        try {
-          const allRequests = await leaveRequestApi.getAll();
-          const pending = allRequests.filter(
-            req => req.status === LeaveRequestStatus.Pending ||
-                   req.status === LeaveRequestStatus.ApprovedByDepartmentManager
-          );
-          setPendingRequests(pending);
-        } catch (fallbackError) {
-          console.error('Fallback veri yükleme hatası:', fallbackError);
-        }
+        alert('Bekleyen talepler yüklenirken hata oluştu. Lütfen tekrar deneyin.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPendingRequests();
-  }, []);
+    if (user) {
+      fetchPendingRequests();
+    }
+  }, [user]);
 
   const handleApproval = async (e) => {
     e.preventDefault();
     try {
       await leaveRequestApi.approve(selectedRequest.id, approvalData);
+      alert('İzin talebi başarıyla güncellendi!');
       setShowApprovalModal(false);
       setSelectedRequest(null);
       setApprovalData({ status: '', comments: '' });
       
       // Refresh data
-      try {
-        const [deptManagerRequests, hrManagerRequests] = await Promise.all([
-          leaveRequestApi.getPendingForDepartmentManager(1), // Replace with actual manager ID
-          leaveRequestApi.getPendingForHrManager()
-        ]);
-        
-        const allPending = [...deptManagerRequests, ...hrManagerRequests];
-        setPendingRequests(allPending);
-      } catch (error) {
-        // Fallback to getting all requests and filtering
-        const allRequests = await leaveRequestApi.getAll();
-        const pending = allRequests.filter(
-          req => req.status === LeaveRequestStatus.Pending ||
-                 req.status === LeaveRequestStatus.ApprovedByDepartmentManager
-        );
-        setPendingRequests(pending);
+      const requests = [];
+      
+      if (user?.roleName === 'Yönetici' || user?.roleName === 'Admin') {
+        const deptManagerRequests = await leaveRequestApi.getPendingForDepartmentManager();
+        requests.push(...deptManagerRequests);
       }
+      
+      if (user?.roleName === 'İK Müdürü' || user?.roleName === 'Admin') {
+        const hrManagerRequests = await leaveRequestApi.getPendingForHrManager();
+        requests.push(...hrManagerRequests);
+      }
+      
+      // Remove duplicates based on request id
+      const uniqueRequests = Array.from(new Map(requests.map(req => [req.id, req])).values());
+      setPendingRequests(uniqueRequests);
     } catch (error) {
       console.error('Onay işlemi sırasında hata:', error);
-      alert('Onay işlemi sırasında hata oluştu!');
+      const errorMessage = error.response?.data?.message || error.response?.data || 'Onay işlemi sırasında hata oluştu!';
+      alert(errorMessage);
     }
   };
 
@@ -102,11 +104,20 @@ const Approvals = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Onaylar</h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Rol: {user?.roleName} | {user?.employeeName}
+          </p>
+          <div className="mt-2 p-3 bg-blue-50 rounded text-xs">
+            <p><strong>Debug:</strong> Rol kontrol: Yönetici? {user?.roleName === 'Yönetici' ? 'Evet ✅' : 'Hayır ❌'} | Admin? {user?.roleName === 'Admin' ? 'Evet ✅' : 'Hayır ❌'}</p>
+            <p><strong>Bekleyen Talepler:</strong> {pendingRequests.length} adet</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Departman Yöneticisi Onayları</h2>
+          {(user?.roleName === 'Yönetici' || user?.roleName === 'Admin') && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Departman Yöneticisi Onayları</h2>
+              <p className="text-xs text-blue-600 mb-3">🔍 Sizin Employee ID: {user?.employeeId}</p>
             <div className="space-y-4">
               {pendingRequests
                 .filter(req => req.status === LeaveRequestStatus.Pending)
@@ -126,6 +137,9 @@ const Approvals = () => {
                       <p><strong>Tarih:</strong> {formatDate(request.startDate)} - {formatDate(request.endDate)}</p>
                       <p><strong>Gün Sayısı:</strong> {request.totalDays} gün</p>
                       {request.reason && <p><strong>Sebep:</strong> {request.reason}</p>}
+                      <p className="text-xs text-blue-600 mt-2 bg-blue-50 p-2 rounded">
+                        🔍 Debug: Bu talebin yöneticisi: {request.departmentManagerId} (İsim: {request.departmentManagerName || 'Yok'})
+                      </p>
                     </div>
 
                     <div className="flex space-x-2">
@@ -149,10 +163,12 @@ const Approvals = () => {
                 <p className="text-gray-500 text-center py-4">Bekleyen departman yöneticisi onayı bulunmuyor.</p>
               )}
             </div>
-          </div>
+            </div>
+          )}
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">İK Müdürü Onayları</h2>
+          {(user?.roleName === 'İK Müdürü' || user?.roleName === 'Admin') && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">İK Müdürü Onayları</h2>
             <div className="space-y-4">
               {pendingRequests
                 .filter(req => req.status === LeaveRequestStatus.ApprovedByDepartmentManager)
@@ -195,8 +211,17 @@ const Approvals = () => {
                 <p className="text-gray-500 text-center py-4">Bekleyen İK müdürü onayı bulunmuyor.</p>
               )}
             </div>
-          </div>
+            </div>
+          )}
         </div>
+
+        {!user?.roleName || (user?.roleName !== 'Yönetici' && user?.roleName !== 'İK Müdürü' && user?.roleName !== 'Admin') && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <p className="text-yellow-800">
+              Bu sayfayı görüntüleme yetkiniz bulunmamaktadır. Sadece Yöneticiler ve İK Müdürleri onay işlemi yapabilir.
+            </p>
+          </div>
+        )}
 
         {/* Approval Modal */}
         {showApprovalModal && (

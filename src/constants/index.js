@@ -28,16 +28,16 @@ export const LeaveRequestStatusColors = {
 
 // User Roles
 export const UserRole = {
-  Admin: 'SystemAdmin',
-  HrManager: 'HrManager',
-  DepartmentManager: 'DepartmentManager',
-  Employee: 'Employee'
+  Admin: 'Admin',
+  HrManager: 'İK Müdürü',
+  DepartmentManager: 'Yönetici',
+  Employee: 'Çalışan'
 };
 
 export const UserRoleLabels = {
-  [UserRole.Admin]: 'Yönetici',
+  [UserRole.Admin]: 'Admin',
   [UserRole.HrManager]: 'İK Müdürü',
-  [UserRole.DepartmentManager]: 'Departman Yöneticisi',
+  [UserRole.DepartmentManager]: 'Yönetici',
   [UserRole.Employee]: 'Çalışan'
 };
 

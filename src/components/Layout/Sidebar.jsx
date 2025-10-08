@@ -52,15 +52,14 @@ const Sidebar = ({ isOpen, onClose }) => {
   
   console.log('Sidebar user:', user);
 
-  const allMenuItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon />, roles: null },
-    { path: '/leave-requests', label: 'İzin Talepleri', icon: <LeaveRequestIcon />, roles: null },
-    { path: '/approvals', label: 'Onaylar', icon: <ApprovalIcon />, roles: [UserRole.Admin, UserRole.HrManager, UserRole.DepartmentManager] },
-    { path: '/employees', label: 'Çalışanlar', icon: <EmployeesIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
-    { path: '/departments', label: 'Departmanlar', icon: <DepartmentIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
-    { path: '/leave-types', label: 'İzin Türleri', icon: <LeaveTypeIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
-    { path: '/users', label: 'Kullanıcılar', icon: <UsersIcon />, roles: [UserRole.Admin] },
-  ];
+          const allMenuItems = [
+            { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon />, roles: null },
+            { path: '/leave-requests', label: 'İzin Talepleri', icon: <LeaveRequestIcon />, roles: null },
+            { path: '/approvals', label: 'Onaylar', icon: <ApprovalIcon />, roles: [UserRole.Admin, UserRole.HrManager, UserRole.DepartmentManager] },
+            { path: '/employees', label: 'Çalışanlar', icon: <EmployeesIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
+            { path: '/departments', label: 'Departmanlar', icon: <DepartmentIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
+            { path: '/leave-types', label: 'İzin Türleri', icon: <LeaveTypeIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
+          ];
 
   // Filter menu items based on user role
   const menuItems = allMenuItems.filter(item => 

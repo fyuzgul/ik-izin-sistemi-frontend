@@ -8,7 +8,10 @@ import Approvals from './pages/Approvals';
 import Employees from './pages/Employees';
 import Departments from './pages/Departments';
 import LeaveTypes from './pages/LeaveTypes';
-import Users from './pages/Users';
+import CreateEmployee from './pages/CreateEmployee';
+import CreateDepartment from './pages/CreateDepartment';
+import CreateLeaveType from './pages/CreateLeaveType';
+import CreateLeaveRequest from './pages/CreateLeaveRequest';
 import Login from './pages/Login';
 import { UserRole } from './constants';
 
@@ -44,6 +47,22 @@ function App() {
               } 
             />
             <Route 
+              path="/leave-requests/create" 
+              element={
+                <ProtectedRoute>
+                  <CreateLeaveRequest />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/departments/create" 
+              element={
+                <ProtectedRoute>
+                  <CreateDepartment />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/approvals" 
               element={
                 <ProtectedRoute>
@@ -60,10 +79,26 @@ function App() {
               } 
             />
             <Route 
+              path="/employees/create" 
+              element={
+                <ProtectedRoute>
+                  <CreateEmployee />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/departments" 
               element={
                 <ProtectedRoute>
                   <Departments />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/departments/create" 
+              element={
+                <ProtectedRoute>
+                  <CreateDepartment />
                 </ProtectedRoute>
               } 
             />
@@ -76,10 +111,10 @@ function App() {
               } 
             />
             <Route 
-              path="/users" 
+              path="/leave-types/create" 
               element={
                 <ProtectedRoute>
-                  <Users />
+                  <CreateLeaveType />
                 </ProtectedRoute>
               } 
             />

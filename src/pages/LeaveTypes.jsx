@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout/Layout';
 import { leaveTypeApi } from '../services/api';
 
 const LeaveTypes = () => {
+  const navigate = useNavigate();
   const [leaveTypes, setLeaveTypes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedLeaveType, setSelectedLeaveType] = useState(null);
-  const [newLeaveType, setNewLeaveType] = useState({
-    name: '',
-    description: '',
-    maxDaysPerYear: 0,
-    requiresApproval: true,
-    isPaid: true
-  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,48 +23,6 @@ const LeaveTypes = () => {
     fetchData();
   }, []);
 
-  const handleCreateLeaveType = async (e) => {
-    e.preventDefault();
-    try {
-      await leaveTypeApi.create(newLeaveType);
-      setShowCreateModal(false);
-      setNewLeaveType({
-        name: '',
-        description: '',
-        maxDaysPerYear: 0,
-        requiresApproval: true,
-        isPaid: true
-      });
-      // Refresh data
-      const types = await leaveTypeApi.getAll();
-      setLeaveTypes(types);
-    } catch (error) {
-      console.error('İzin türü oluşturulurken hata:', error);
-      alert('İzin türü oluşturulurken hata oluştu!');
-    }
-  };
-
-  const handleEditLeaveType = async (e) => {
-    e.preventDefault();
-    try {
-      await leaveTypeApi.update(selectedLeaveType.id, newLeaveType);
-      setShowEditModal(false);
-      setSelectedLeaveType(null);
-      setNewLeaveType({
-        name: '',
-        description: '',
-        maxDaysPerYear: 0,
-        requiresApproval: true,
-        isPaid: true
-      });
-      // Refresh data
-      const types = await leaveTypeApi.getAll();
-      setLeaveTypes(types);
-    } catch (error) {
-      console.error('İzin türü güncellenirken hata:', error);
-      alert('İzin türü güncellenirken hata oluştu!');
-    }
-  };
 
   const handleDeleteLeaveType = async (id) => {
     if (window.confirm('Bu izin türünü silmek istediğinizden emin misiniz?')) {
@@ -112,17 +62,6 @@ const LeaveTypes = () => {
     }
   };
 
-  const openEditModal = (leaveType) => {
-    setSelectedLeaveType(leaveType);
-    setNewLeaveType({
-      name: leaveType.name,
-      description: leaveType.description || '',
-      maxDaysPerYear: leaveType.maxDaysPerYear,
-      requiresApproval: leaveType.requiresApproval,
-      isPaid: leaveType.isPaid
-    });
-    setShowEditModal(true);
-  };
 
   if (loading) {
     return (
@@ -141,12 +80,12 @@ const LeaveTypes = () => {
           <div>
             <h1 className="text-sm font-medium text-gray-500 uppercase tracking-wide">İzin Türleri</h1>
           </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Yeni İzin Türü
-          </button>
+                  <button
+                    onClick={() => navigate('/leave-types/create')}
+                    className="bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Yeni İzin Türü
+                  </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -223,12 +162,6 @@ const LeaveTypes = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button 
-                        onClick={() => openEditModal(leaveType)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        Düzenle
-                      </button>
                       {leaveType.isActive ? (
                         <button 
                           onClick={() => handleDeactivateLeaveType(leaveType.id)}
@@ -258,179 +191,6 @@ const LeaveTypes = () => {
           </div>
         </div>
 
-        {/* Create Leave Type Modal */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Yeni İzin Türü</h3>
-                <form onSubmit={handleCreateLeaveType} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Ad</label>
-                    <input
-                      type="text"
-                      value={newLeaveType.name}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, name: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Açıklama</label>
-                    <textarea
-                      value={newLeaveType.description}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, description: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      rows="3"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Yıllık Maksimum Gün</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={newLeaveType.maxDaysPerYear}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, maxDaysPerYear: parseInt(e.target.value)})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="requiresApproval"
-                      checked={newLeaveType.requiresApproval}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, requiresApproval: e.target.checked})}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="requiresApproval" className="ml-2 block text-sm text-gray-900">
-                      Onay Gerekli
-                    </label>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="isPaid"
-                      checked={newLeaveType.isPaid}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, isPaid: e.target.checked})}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="isPaid" className="ml-2 block text-sm text-gray-900">
-                      Ücretli
-                    </label>
-                  </div>
-
-                  <div className="flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowCreateModal(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-                    >
-                      İptal
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
-                      Oluştur
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Leave Type Modal */}
-        {showEditModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">İzin Türü Düzenle</h3>
-                <form onSubmit={handleEditLeaveType} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Ad</label>
-                    <input
-                      type="text"
-                      value={newLeaveType.name}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, name: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Açıklama</label>
-                    <textarea
-                      value={newLeaveType.description}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, description: e.target.value})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      rows="3"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Yıllık Maksimum Gün</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={newLeaveType.maxDaysPerYear}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, maxDaysPerYear: parseInt(e.target.value)})}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="editRequiresApproval"
-                      checked={newLeaveType.requiresApproval}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, requiresApproval: e.target.checked})}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="editRequiresApproval" className="ml-2 block text-sm text-gray-900">
-                      Onay Gerekli
-                    </label>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="editIsPaid"
-                      checked={newLeaveType.isPaid}
-                      onChange={(e) => setNewLeaveType({...newLeaveType, isPaid: e.target.checked})}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="editIsPaid" className="ml-2 block text-sm text-gray-900">
-                      Ücretli
-                    </label>
-                  </div>
-
-                  <div className="flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setShowEditModal(false)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-                    >
-                      İptal
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
-                      Güncelle
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );
