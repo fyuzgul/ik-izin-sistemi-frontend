@@ -97,7 +97,7 @@ const CreateEmployee = () => {
             <h1 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Yeni Çalışan</h1>
           </div>
           <button
-            onClick={() => navigate('/employees')}
+            onClick={() => navigate(-1)}
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
           >
             Geri Dön
@@ -263,7 +263,7 @@ const CreateEmployee = () => {
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
-                onClick={() => navigate('/employees')}
+                onClick={() => navigate(-1)}
                 className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors duration-200"
               >
                 İptal

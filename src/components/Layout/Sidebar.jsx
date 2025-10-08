@@ -55,7 +55,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           const allMenuItems = [
             { path: '/dashboard', label: 'Dashboard', icon: <DashboardIcon />, roles: null },
             { path: '/leave-requests', label: 'İzin Talepleri', icon: <LeaveRequestIcon />, roles: null },
-            { path: '/approvals', label: 'Onaylar', icon: <ApprovalIcon />, roles: [UserRole.Admin, UserRole.HrManager, UserRole.DepartmentManager] },
+            { path: '/approvals', label: 'Bekleyen Onaylar', icon: <ApprovalIcon />, roles: [UserRole.Admin, UserRole.HrManager, UserRole.DepartmentManager] },
             { path: '/employees', label: 'Çalışanlar', icon: <EmployeesIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
             { path: '/departments', label: 'Departmanlar', icon: <DepartmentIcon />, roles: [UserRole.Admin, UserRole.HrManager] },
             { path: '/leave-types', label: 'İzin Türleri', icon: <LeaveTypeIcon />, roles: [UserRole.Admin, UserRole.HrManager] },

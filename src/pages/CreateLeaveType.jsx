@@ -32,7 +32,7 @@ const CreateLeaveType = () => {
             <h1 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Yeni İzin Türü</h1>
           </div>
           <button
-            onClick={() => navigate('/leave-types')}
+            onClick={() => navigate(-1)}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
           >
             Geri Dön
@@ -105,7 +105,7 @@ const CreateLeaveType = () => {
             <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
               <button
                 type="button"
-                onClick={() => navigate('/leave-types')}
+                onClick={() => navigate(-1)}
                 className="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
               >
                 İptal

@@ -18,7 +18,7 @@ const Layout = ({ children }) => {
 
       <div className="flex min-h-screen">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <main className="flex-1 lg:ml-0 ml-0 p-6 transition-all duration-300">
+        <main className="flex-1 lg:ml-0 ml-0 p-6 transition-all duration-300 overflow-x-hidden max-w-full">
           {children}
         </main>
       </div>
